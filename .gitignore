@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# JavaScript
+node_modules/
+.npmrc
+*.log
+
+# Java
+*.class
+*.jar
+out/
+build/
+.gradle/
+
+# C#
+bin/
+obj/
+*.user
+.vs/
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

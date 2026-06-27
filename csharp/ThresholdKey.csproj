@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>ThresholdKeyTests</AssemblyName>
+    <RootNamespace>QVault.Threshold</RootNamespace>
+  </PropertyGroup>
+
+</Project>

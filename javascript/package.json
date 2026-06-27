@@ -1,0 +1,23 @@
+{
+  "name": "@qvault/threshold",
+  "version": "0.1.0",
+  "description": "Shamir's Secret Sharing over GF(secp256k1 prime) — zero dependencies",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import":  "./shamir.js",
+      "require": "./shamir.cjs"
+    }
+  },
+  "main":   "./shamir.cjs",
+  "module": "./shamir.js",
+  "files": ["shamir.js", "shamir.cjs"],
+  "scripts": {
+    "test": "node --test test_shamir.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["shamir", "secret-sharing", "threshold", "cryptography", "bigint"],
+  "license": "MIT"
+}
