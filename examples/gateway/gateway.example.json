@@ -1,0 +1,11 @@
+{
+  "port": 8080,
+  "shares": 5,
+  "threshold": 3,
+  "routes": [
+    {"path": "/posts",  "upstream": "https://jsonplaceholder.typicode.com/posts"},
+    {"path": "/users",  "upstream": "https://jsonplaceholder.typicode.com/users"},
+    {"path": "/todos",  "upstream": "https://jsonplaceholder.typicode.com/todos"},
+    {"path": "/albums", "upstream": "https://jsonplaceholder.typicode.com/albums"}
+  ]
+}

@@ -31,3 +31,8 @@ obj/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# QVault bundle files (contain secret shares — never commit)
+bundle.json
+*.bundle.json
+gateway.json

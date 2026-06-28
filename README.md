@@ -47,7 +47,7 @@ The fixed polynomial `f(x) = 1337 + 42·x + 7·x²` over GF(P) gives:
 | 2 | 1449 |
 | 3 | 1526 |
 
-Any two of these three shares reconstruct `f(0) = 1337`. Every implementation in this repo passes this test, proving they produce identical results regardless of language.
+All three shares are required to reconstruct `f(0) = 1337` (the polynomial is degree-2, so k=3 shares are needed). Every implementation in this repo passes this test, proving they produce identical results regardless of language.
 
 ---
 
@@ -110,7 +110,7 @@ node --test test_shamir.js
 
 ## Java
 
-**Requires:** Java 16+ (records). Zero dependencies.
+**Requires:** Java 11+. Zero dependencies.
 
 ```java
 import io.qvault.threshold.Share;
@@ -174,12 +174,15 @@ dotnet run --project ThresholdKey.csproj
 ### QVault Proxy — quantum-secured API wrapper
 
 `examples/proxy/qvault_proxy.py` is a command-line tool that fetches any HTTP endpoint,
-encrypts the response body using a randomly generated 256-bit key, and splits that key
-into N shares via Shamir's SSS — so only a party holding at least K shares can decrypt.
+encrypts the response body with **AES-256-GCM** using a randomly generated 256-bit key,
+and splits that key into N shares via Shamir's SSS — so only a party holding at least K
+shares can decrypt.
+
+**Requires:** `pip install cryptography`
 
 ```
 examples/proxy/qvault_proxy.py  encrypt <url>  [-n N] [-k K] [-o FILE]
-examples/proxy/qvault_proxy.py  decrypt <bundle.json>  [--shares X…]  [--force]
+examples/proxy/qvault_proxy.py  decrypt <bundle.json|->  [--shares X…]  [--force]
 ```
 
 **Full walkthrough:**
@@ -196,16 +199,20 @@ python examples/proxy/qvault_proxy.py decrypt bundle.json
 # 3. Decrypt using any specific 3 shares (e.g. 2, 4, 5)
 python examples/proxy/qvault_proxy.py decrypt bundle.json --shares 2 4 5
 
-# 4. Demonstrate information-theoretic security: 2 shares → auth failure + garbage
+# 4. Pipe directly from curl
+curl -s https://jsonplaceholder.typicode.com/posts/1 \
+    | python examples/proxy/qvault_proxy.py decrypt -
+
+# 5. Demonstrate information-theoretic security: 2 shares → auth failure + garbage
 python examples/proxy/qvault_proxy.py decrypt bundle.json --shares 1 2 --force
 ```
 
-The bundle is a portable JSON file:
+The bundle is a portable JSON file (v2 format):
 
 ```json
 {
-  "version":      "qvault/1",
-  "cipher":       "sha256-ctr-xor",
+  "version":      "qvault/2",
+  "cipher":       "aes-256-gcm",
   "endpoint":     "https://jsonplaceholder.typicode.com/posts/1",
   "content_type": "application/json; charset=utf-8",
   "fetched_at":   "2026-01-01T12:00:00+00:00",
@@ -213,15 +220,64 @@ The bundle is a portable JSON file:
   "k": 3,
   "shares": [
     {"x": 1, "y": "0x3f2a..."},
-    {"x": 2, "y": "0x9b1c..."},
-    ...
+    {"x": 2, "y": "0x9b1c..."}
   ],
-  "auth_tag":   "hmac-sha256 of ciphertext under the secret key",
-  "ciphertext": "base64-encoded XOR-encrypted body"
+  "nonce":      "base64-encoded 12-byte GCM nonce",
+  "ciphertext": "base64-encoded AES-GCM ciphertext (includes 16-byte auth tag)"
 }
 ```
 
-Zero external dependencies.  Run from the repo root with Python 3.8+.
+AES-256-GCM provides authenticated encryption — a wrong key (or fewer than k shares)
+causes an authentication failure before any output is produced.
+
+---
+
+### QVault Gateway — persistent encrypted reverse proxy
+
+`examples/gateway/qvault_gateway.py` is an HTTP server that sits in front of any set of
+backend APIs. Every response is transparently encrypted with a fresh AES-256-GCM key and
+returned as a bundle — clients decrypt with `qvault_proxy.py decrypt -`.
+
+**Requires:** `pip install cryptography`
+
+```bash
+# 1. Copy and edit the example config
+cp examples/gateway/gateway.example.json examples/gateway/gateway.json
+
+# 2. Start the gateway (default: port 8080)
+python examples/gateway/qvault_gateway.py examples/gateway/gateway.json
+
+# 3. Query it like any normal API — response is an encrypted bundle
+curl http://localhost:8080/posts/1
+
+# 4. Decrypt inline
+curl -s http://localhost:8080/posts/1 \
+    | python examples/proxy/qvault_proxy.py decrypt -
+
+# 5. Save then decrypt
+curl -s http://localhost:8080/users/2 > bundle.json
+python examples/proxy/qvault_proxy.py decrypt bundle.json --shares 1 3 5
+```
+
+**`gateway.example.json`:**
+
+```json
+{
+  "port":      8080,
+  "shares":    5,
+  "threshold": 3,
+  "routes": [
+    {"path": "/posts",  "upstream": "https://jsonplaceholder.typicode.com/posts"},
+    {"path": "/users",  "upstream": "https://jsonplaceholder.typicode.com/users"},
+    {"path": "/todos",  "upstream": "https://jsonplaceholder.typicode.com/todos"},
+    {"path": "/albums", "upstream": "https://jsonplaceholder.typicode.com/albums"}
+  ]
+}
+```
+
+Routes use longest-prefix matching. Built-in unencrypted endpoints:
+- `GET /health` — gateway status
+- `GET /routes` — list of configured routes
 
 ---
 
