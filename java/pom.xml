@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    Maven Central coordinates: io.qvault:qvault-threshold:1.0.0
+    ============================================================
+    Namespace claim required at https://central.sonatype.com
+    Log in with GitHub OAuth to claim io.github.h4rdstyle automatically,
+    or prove domain ownership to claim io.qvault.
+
+    Change <groupId> below to match the namespace you claim.
+  -->
+  <groupId>io.qvault</groupId>
+  <artifactId>qvault-threshold</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <name>QVault Threshold</name>
+  <description>Shamir's Secret Sharing over GF(secp256k1 prime) — post-quantum key splitting. Zero dependencies.</description>
+  <url>https://github.com/H4RDSTYLE/qvault-threshold</url>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>h4rdstyle</id>
+      <name>H4RDSTYLE</name>
+      <url>https://github.com/H4RDSTYLE</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/H4RDSTYLE/qvault-threshold.git</connection>
+    <developerConnection>scm:git:https://github.com/H4RDSTYLE/qvault-threshold.git</developerConnection>
+    <url>https://github.com/H4RDSTYLE/qvault-threshold</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <!--
+      Source files live in  java/io/qvault/threshold/*.java
+      pom.xml is at         java/pom.xml
+      So the source root is the same directory as pom.xml.
+    -->
+    <sourceDirectory>${project.basedir}</sourceDirectory>
+
+    <plugins>
+
+      <!-- Exclude the test runner from the library JAR -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.12.1</version>
+        <configuration>
+          <excludes>
+            <exclude>ThresholdKeyTest.java</exclude>
+          </excludes>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <!-- Source JAR (required by Maven Central) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.0</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals><goal>jar-no-fork</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Javadoc JAR (required by Maven Central) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.6.3</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+          <doclint>none</doclint>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals><goal>jar</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- GPG signing (required by Maven Central) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals><goal>sign</goal></goals>
+            <configuration>
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Sonatype Central publisher (new portal, replaces OSSRH) -->
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.4.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>central</publishingServerId>
+          <tokenAuth>true</tokenAuth>
+          <autoPublish>true</autoPublish>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

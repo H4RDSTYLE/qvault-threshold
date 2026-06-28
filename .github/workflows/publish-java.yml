@@ -1,0 +1,61 @@
+name: Publish Java to Maven Central
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: maven-central
+      url: https://central.sonatype.com/artifact/io.qvault/qvault-threshold
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          # Injects Maven settings.xml with server ID 'central'
+          # matching <publishingServerId> in pom.xml
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE
+
+      - name: Compile and run tests (plain javac)
+        working-directory: java
+        run: |
+          javac -encoding UTF-8 \
+            io/qvault/threshold/Share.java \
+            io/qvault/threshold/ThresholdKey.java \
+            ThresholdKeyTest.java
+          java -ea ThresholdKeyTest
+
+      - name: Deploy to Maven Central
+        working-directory: java
+        run: mvn --batch-mode deploy -DskipTests
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      # Required secrets:
+      #   MAVEN_CENTRAL_USERNAME   — deployment token username from central.sonatype.com
+      #   MAVEN_CENTRAL_PASSWORD   — deployment token password
+      #   GPG_PRIVATE_KEY          — exported GPG private key (armored)
+      #   GPG_PASSPHRASE           — GPG key passphrase
+      #
+      # Setup steps:
+      #   1. Create account at https://central.sonatype.com (log in with GitHub)
+      #   2. Claim namespace: io.qvault (requires qvault.io domain)
+      #      OR change groupId in pom.xml to io.github.h4rdstyle (auto-approved)
+      #   3. Generate deployment token at Account > Generate User Token
+      #   4. Generate GPG key: gpg --gen-key
+      #      Export: gpg --armor --export-secret-keys KEY_ID
+      #      Upload public key: gpg --keyserver keyserver.ubuntu.com --send-keys KEY_ID
+      #   5. Add all four values as GitHub repository secrets

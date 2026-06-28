@@ -1,7 +1,7 @@
 {
   "name": "@qvault/threshold",
-  "version": "0.1.0",
-  "description": "Shamir's Secret Sharing over GF(secp256k1 prime) — zero dependencies",
+  "version": "1.0.0",
+  "description": "Shamir's Secret Sharing over GF(secp256k1 prime) — post-quantum key splitting. Zero dependencies.",
   "type": "module",
   "exports": {
     ".": {
@@ -11,13 +11,29 @@
   },
   "main":   "./shamir.cjs",
   "module": "./shamir.js",
-  "files": ["shamir.js", "shamir.cjs"],
+  "files": ["shamir.js", "shamir.cjs", "README.md"],
   "scripts": {
     "test": "node --test test_shamir.js"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["shamir", "secret-sharing", "threshold", "cryptography", "bigint"],
-  "license": "MIT"
+  "keywords": [
+    "shamir", "secret-sharing", "threshold", "cryptography",
+    "bigint", "post-quantum", "zero-dependency", "key-splitting"
+  ],
+  "author": "H4RDSTYLE (https://github.com/H4RDSTYLE)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/H4RDSTYLE/qvault-threshold.git",
+    "directory": "javascript"
+  },
+  "homepage": "https://github.com/H4RDSTYLE/qvault-threshold",
+  "bugs": {
+    "url": "https://github.com/H4RDSTYLE/qvault-threshold/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

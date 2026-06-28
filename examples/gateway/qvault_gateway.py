@@ -79,7 +79,7 @@ from urllib.error import URLError, HTTPError
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "..", "..", "python"))
-from shamir import generate, P  # noqa: E402
+from qvault_threshold import generate, P  # noqa: E402
 
 try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM

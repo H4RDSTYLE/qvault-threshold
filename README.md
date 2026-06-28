@@ -6,6 +6,18 @@ Used by [QVault](https://h4rdstyle.github.io/qvault) to split quantum-resistant 
 
 ---
 
+## Install
+
+| Language | Package manager | Command |
+|---|---|---|
+| Python | pip | `pip install qvault-threshold` |
+| JavaScript | npm | `npm install @qvault/threshold` |
+| Java | Maven | `<groupId>io.qvault</groupId> <artifactId>qvault-threshold</artifactId>` |
+| Java | Gradle | `implementation 'io.qvault:qvault-threshold:1.0.0'` |
+| C# | NuGet | `dotnet add package QVault.Threshold` |
+
+---
+
 ## What it does
 
 A secret (e.g. a 256-bit private key) is encoded as the constant term `f(0)` of a random degree-(k-1) polynomial over a finite field GF(P). Any k of the n generated shares reconstruct the secret exactly via Lagrange interpolation; fewer than k shares reveal **zero information** about the secret (information-theoretic security).
@@ -55,8 +67,12 @@ All three shares are required to reconstruct `f(0) = 1337` (the polynomial is de
 
 **Requires:** Python 3.8+. Zero dependencies.
 
+```bash
+pip install qvault-threshold
+```
+
 ```python
-from shamir import generate, reconstruct, verify
+from qvault_threshold import generate, reconstruct, verify
 
 secret = 0xDEADBEEF
 shares = generate(secret, n=5, k=3)
@@ -65,8 +81,15 @@ shares = generate(secret, n=5, k=3)
 recovered = reconstruct(shares[:3])
 assert recovered == secret
 
-ok  = verify(shares[2][0], shares[2][1], shares[:2])      # True
+ok  = verify(shares[2][0], shares[2][1],     shares[:2])  # True
 bad = verify(shares[2][0], shares[2][1] + 1, shares[:2])  # False
+```
+
+**Run tests:**
+
+```bash
+cd python
+python test_shamir.py
 ```
 
 **Run tests:**
@@ -82,12 +105,16 @@ python test_shamir.py
 
 **Requires:** Node.js 18+ or any modern browser. Zero dependencies.
 
+```bash
+npm install @qvault/threshold
+```
+
 ```javascript
 // ES modules
-import { generate, reconstruct, verify } from './shamir.js';
+import { generate, reconstruct, verify } from '@qvault/threshold';
 
 // CommonJS
-const { generate, reconstruct, verify } = require('./shamir.cjs');
+const { generate, reconstruct, verify } = require('@qvault/threshold');
 
 const shares = generate(0xDEADBEEFn, 5, 3);
 // [{x: 1n, y: …}, {x: 2n, y: …}, … {x: 5n, y: …}]
@@ -111,6 +138,22 @@ node --test test_shamir.js
 ## Java
 
 **Requires:** Java 11+. Zero dependencies.
+
+**Maven:**
+
+```xml
+<dependency>
+  <groupId>io.qvault</groupId>
+  <artifactId>qvault-threshold</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+**Gradle:**
+
+```groovy
+implementation 'io.qvault:qvault-threshold:1.0.0'
+```
 
 ```java
 import io.qvault.threshold.Share;
@@ -143,7 +186,11 @@ java -ea ThresholdKeyTest
 
 ## C#
 
-**Requires:** .NET 8+. Zero dependencies.
+**Requires:** .NET 6+. Zero dependencies.
+
+```bash
+dotnet add package QVault.Threshold
+```
 
 ```csharp
 using QVault.Threshold;

@@ -1,8 +1,8 @@
-"""Unit tests for python/shamir.py — run with:  python test_shamir.py"""
+"""Unit tests for python/qvault_threshold.py — run with:  python test_shamir.py"""
 
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
-from shamir import generate, reconstruct, verify, P
+from qvault_threshold import generate, reconstruct, verify, P
 
 _passed = 0
 _failed = 0
@@ -104,7 +104,7 @@ def test_cross_language_vector():
     # Degree-2 polynomial => k=3: need all 3 shares to reconstruct f(0).
     # These exact values must be reproduced by the JavaScript, Java, and C# implementations.
     coeffs = [1337, 42, 7]
-    from shamir import _eval
+    from qvault_threshold import _eval
     y1 = _eval(coeffs, 1)   # 1337 + 42  + 7   = 1386
     y2 = _eval(coeffs, 2)   # 1337 + 84  + 28  = 1449
     y3 = _eval(coeffs, 3)   # 1337 + 126 + 63  = 1526

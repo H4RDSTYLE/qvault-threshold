@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "qvault-threshold"
+version         = "1.0.0"
+description     = "Shamir's Secret Sharing over GF(secp256k1 prime) — post-quantum key splitting"
+readme          = "README.md"
+requires-python = ">=3.8"
+license         = {text = "MIT"}
+authors         = [{name = "H4RDSTYLE"}]
+keywords        = [
+    "shamir", "secret-sharing", "threshold", "cryptography",
+    "post-quantum", "zero-dependency", "key-splitting"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Security :: Cryptography",
+    "Intended Audience :: Developers",
+    "Typing :: Typed",
+    "Development Status :: 5 - Production/Stable",
+]
+
+[project.urls]
+Homepage   = "https://github.com/H4RDSTYLE/qvault-threshold"
+Repository = "https://github.com/H4RDSTYLE/qvault-threshold"
+Issues     = "https://github.com/H4RDSTYLE/qvault-threshold/issues"
+
+[tool.setuptools]
+py-modules = ["qvault_threshold"]

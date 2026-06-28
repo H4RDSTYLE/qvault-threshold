@@ -1,0 +1,34 @@
+name: Publish to npm
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@qvault/threshold
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Run tests
+        run: node --test javascript/test_shamir.js
+
+      - name: Publish to npm
+        working-directory: javascript
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # Required secret: NPM_TOKEN
+        # Create at: https://www.npmjs.com/settings/<user>/tokens
+        # Type: Automation (for CI/CD)
+        # The @qvault npm organization must exist: https://www.npmjs.com/org/create

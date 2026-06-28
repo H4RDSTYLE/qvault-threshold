@@ -1,0 +1,40 @@
+name: Publish C# to NuGet
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: nuget
+      url: https://www.nuget.org/packages/QVault.Threshold/
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Run tests
+        working-directory: csharp
+        run: dotnet run --project ThresholdKey.csproj
+
+      - name: Build NuGet package
+        working-directory: csharp
+        run: dotnet pack QVaultThreshold.csproj -c Release -o nupkg
+
+      - name: Push to NuGet.org
+        working-directory: csharp
+        run: |
+          dotnet nuget push nupkg/*.nupkg \
+            --api-key ${{ secrets.NUGET_TOKEN }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+        # Required secret: NUGET_TOKEN
+        # Create at: https://www.nuget.org/account/apikeys
+        # Glob pattern: QVault.Threshold*
+        # Permissions: Push new packages and package versions

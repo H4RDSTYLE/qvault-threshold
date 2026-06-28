@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    NuGet package: QVault.Threshold
+    This is the publishable class library (ThresholdKey.cs + Share.cs).
+    Build: dotnet pack QVaultThreshold.csproj -c Release -o nupkg
+  -->
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>QVaultThreshold</AssemblyName>
+    <RootNamespace>QVault.Threshold</RootNamespace>
+    <LangVersion>10</LangVersion>
+
+    <!-- NuGet metadata -->
+    <PackageId>QVault.Threshold</PackageId>
+    <Version>1.0.0</Version>
+    <Title>QVault Threshold</Title>
+    <Description>Shamir's Secret Sharing over GF(secp256k1 prime) — post-quantum key splitting. Zero dependencies.</Description>
+    <Authors>H4RDSTYLE</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/H4RDSTYLE/qvault-threshold</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/H4RDSTYLE/qvault-threshold.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>shamir;secret-sharing;threshold;cryptography;post-quantum;zero-dependency</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- SDK auto-includes all .cs files; remove only the test runner -->
+  <ItemGroup>
+    <Compile Remove="ThresholdKeyTests.cs" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
