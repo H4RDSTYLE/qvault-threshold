@@ -281,29 +281,52 @@ causes an authentication failure before any output is produced.
 
 ### QVault Gateway — persistent encrypted reverse proxy
 
-`examples/gateway/qvault_gateway.py` is an HTTP server that sits in front of any set of
-backend APIs. Every response is transparently encrypted with a fresh AES-256-GCM key and
-returned as a bundle — clients decrypt with `qvault_proxy.py decrypt -`.
+`examples/gateway/qvault_gateway.py` is a bidirectional HTTP server with two modes:
+
+- **Egress**: gateway fetches external APIs and returns encrypted bundles. Clients decrypt with `qvault_proxy decrypt`.
+- **Ingress**: trusted external partners encrypt their HTTP requests as bundles. The gateway decrypts and forwards plaintext to internal services.
 
 **Requires:** `pip install cryptography`
 
+#### Egress quick start
+
 ```bash
-# 1. Copy and edit the example config
+# 1. Copy and edit the config
 cp examples/gateway/gateway.example.json examples/gateway/gateway.json
 
 # 2. Start the gateway (default: port 8080)
-python examples/gateway/qvault_gateway.py examples/gateway/gateway.json
+python examples/gateway/qvault_gateway.py serve examples/gateway/gateway.json
 
-# 3. Query it like any normal API — response is an encrypted bundle
-curl http://localhost:8080/posts/1
+# 3. Query — response is an encrypted bundle
+curl -s http://localhost:8080/posts/1 | python examples/proxy/qvault_proxy.py decrypt -
 
-# 4. Decrypt inline
-curl -s http://localhost:8080/posts/1 \
-    | python examples/proxy/qvault_proxy.py decrypt -
-
-# 5. Save then decrypt
+# 4. Save then decrypt with explicit shares
 curl -s http://localhost:8080/users/2 > bundle.json
 python examples/proxy/qvault_proxy.py decrypt bundle.json --shares 1 3 5
+```
+
+#### Ingress quick start (inbound encrypted requests)
+
+```bash
+# 1. Generate a static ingress key (run once; add output to gateway.json)
+python examples/gateway/qvault_gateway.py keygen -n 5 -k 3
+
+# 2. Paste the "key_shares" block into the "ingress" section of gateway.json
+#    Distribute any 3 of the 5 printed shares to trusted external clients.
+
+# 3. Start the gateway
+python examples/gateway/qvault_gateway.py serve examples/gateway/gateway.json
+
+# 4. External client: encrypt a request using their 3 shares
+python examples/proxy/qvault_proxy.py encrypt https://my-api.example.com/data -o req.json
+
+# 5. External client: send the encrypted bundle to the gateway ingress route
+curl -s http://localhost:8080/api/orders \
+     -d @req.json \
+     -H "Content-Type: application/x-qvault-bundle+json"
+
+# 6. Gateway decrypts, forwards plaintext to the configured internal upstream
+#    and returns the upstream's response
 ```
 
 **`gateway.example.json`:**
@@ -315,16 +338,24 @@ python examples/proxy/qvault_proxy.py decrypt bundle.json --shares 1 3 5
   "threshold": 3,
   "routes": [
     {"path": "/posts",  "upstream": "https://jsonplaceholder.typicode.com/posts"},
-    {"path": "/users",  "upstream": "https://jsonplaceholder.typicode.com/users"},
-    {"path": "/todos",  "upstream": "https://jsonplaceholder.typicode.com/todos"},
-    {"path": "/albums", "upstream": "https://jsonplaceholder.typicode.com/albums"}
-  ]
+    {"path": "/users",  "upstream": "https://jsonplaceholder.typicode.com/users"}
+  ],
+  "ingress": {
+    "key_shares": [],
+    "routes": [
+      {
+        "path": "/api/orders",
+        "upstream": "http://localhost:3000/orders",
+        "encrypt_response": false
+      }
+    ]
+  }
 }
 ```
 
 Routes use longest-prefix matching. Built-in unencrypted endpoints:
-- `GET /health` — gateway status
-- `GET /routes` — list of configured routes
+- `GET /health` — gateway status (egress config + ingress configured/not)
+- `GET /routes` — egress and ingress route listing
 
 ---
 
