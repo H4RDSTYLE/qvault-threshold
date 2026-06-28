@@ -169,6 +169,62 @@ dotnet run --project ThresholdKey.csproj
 
 ---
 
+## Examples
+
+### QVault Proxy — quantum-secured API wrapper
+
+`examples/proxy/qvault_proxy.py` is a command-line tool that fetches any HTTP endpoint,
+encrypts the response body using a randomly generated 256-bit key, and splits that key
+into N shares via Shamir's SSS — so only a party holding at least K shares can decrypt.
+
+```
+examples/proxy/qvault_proxy.py  encrypt <url>  [-n N] [-k K] [-o FILE]
+examples/proxy/qvault_proxy.py  decrypt <bundle.json>  [--shares X…]  [--force]
+```
+
+**Full walkthrough:**
+
+```bash
+# 1. Fetch a public API, encrypt it, save the bundle (5 shares, need 3 to decrypt)
+python examples/proxy/qvault_proxy.py encrypt \
+    https://jsonplaceholder.typicode.com/posts/1 \
+    -o bundle.json
+
+# 2. Decrypt using the first 3 shares (default)
+python examples/proxy/qvault_proxy.py decrypt bundle.json
+
+# 3. Decrypt using any specific 3 shares (e.g. 2, 4, 5)
+python examples/proxy/qvault_proxy.py decrypt bundle.json --shares 2 4 5
+
+# 4. Demonstrate information-theoretic security: 2 shares → auth failure + garbage
+python examples/proxy/qvault_proxy.py decrypt bundle.json --shares 1 2 --force
+```
+
+The bundle is a portable JSON file:
+
+```json
+{
+  "version":      "qvault/1",
+  "cipher":       "sha256-ctr-xor",
+  "endpoint":     "https://jsonplaceholder.typicode.com/posts/1",
+  "content_type": "application/json; charset=utf-8",
+  "fetched_at":   "2026-01-01T12:00:00+00:00",
+  "n": 5,
+  "k": 3,
+  "shares": [
+    {"x": 1, "y": "0x3f2a..."},
+    {"x": 2, "y": "0x9b1c..."},
+    ...
+  ],
+  "auth_tag":   "hmac-sha256 of ciphertext under the secret key",
+  "ciphertext": "base64-encoded XOR-encrypted body"
+}
+```
+
+Zero external dependencies.  Run from the repo root with Python 3.8+.
+
+---
+
 ## Security notes
 
 - **CSPRNG everywhere** — random coefficients are generated with `secrets.randbelow` (Python), `crypto.getRandomValues` (JS), `SecureRandom` (Java), and `RandomNumberGenerator.Fill` (C#).
