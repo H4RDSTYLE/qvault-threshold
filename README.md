@@ -359,6 +359,106 @@ Routes use longest-prefix matching. Built-in unencrypted endpoints:
 
 ---
 
+## Self-hosting
+
+### Option A — Docker (recommended)
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/H4RDSTYLE/qvault-threshold.git
+cd qvault-threshold
+
+# 2. Create your config
+cp examples/gateway/gateway.example.json gateway.json
+# Edit gateway.json — set your routes and upstreams
+
+# 3. (Optional) generate ingress key if you need inbound encrypted requests
+python examples/gateway/qvault_gateway.py keygen -n 5 -k 3
+# Paste the key_shares output into gateway.json under "ingress"
+
+# 4. Start
+docker compose up -d
+
+# 5. Verify
+curl http://localhost:8080/health
+```
+
+The container mounts `./gateway.json` read-only. To update the config:
+```bash
+# Edit gateway.json, then restart
+docker compose restart
+```
+
+### Option B — Python (no Docker)
+
+**Requirements:** Python 3.8+, `pip install cryptography`
+
+```bash
+git clone https://github.com/H4RDSTYLE/qvault-threshold.git
+cd qvault-threshold
+
+pip install cryptography
+
+cp examples/gateway/gateway.example.json gateway.json
+# Edit gateway.json
+
+python examples/gateway/qvault_gateway.py serve gateway.json
+```
+
+To run as a background service on Linux with systemd:
+
+```ini
+# /etc/systemd/system/qvault-gateway.service
+[Unit]
+Description=QVault Gateway
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/qvault-threshold/examples/gateway/qvault_gateway.py serve /opt/qvault-threshold/gateway.json
+Restart=always
+User=nobody
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl enable --now qvault-gateway
+```
+
+### Config reference
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `port` | int | `8080` | Port to bind |
+| `shares` | int | `5` | Egress: total Shamir shares per response |
+| `threshold` | int | `3` | Egress: minimum shares to decrypt |
+| `routes` | array | `[]` | Egress routes (path → upstream) |
+| `ingress.key_shares` | array | — | All N shares of the static ingress key |
+| `ingress.routes` | array | `[]` | Ingress routes (path → internal upstream) |
+| `ingress.routes[].encrypt_response` | bool | `false` | Re-wrap upstream response as a bundle |
+
+### Publishing packages — required secrets
+
+To trigger publishing via GitHub Actions, push a version tag (`git tag v1.0.0 && git push --tags`).
+Each workflow reads from GitHub repository secrets:
+
+| Secret | Used by | How to get it |
+|---|---|---|
+| *(none — uses OIDC)* | PyPI | Configure Trusted Publisher at pypi.org/manage/account/publishing |
+| `NPM_TOKEN` | npm | npmjs.com → Account → Access Tokens → Automation |
+| `MAVEN_CENTRAL_USERNAME` | Maven | central.sonatype.com → Account → Generate User Token |
+| `MAVEN_CENTRAL_PASSWORD` | Maven | (same token, password field) |
+| `GPG_PRIVATE_KEY` | Maven | `gpg --armor --export-secret-keys KEY_ID` |
+| `GPG_PASSPHRASE` | Maven | your GPG key passphrase |
+| `NUGET_TOKEN` | NuGet | nuget.org → Account → API Keys |
+
+For Maven Central, the namespace `io.qvault` requires domain ownership of `qvault.io`.
+Alternatively, change `<groupId>` in `java/pom.xml` to `io.github.h4rdstyle`
+which is auto-approved via GitHub OAuth login at central.sonatype.com.
+
+---
+
 ## Security notes
 
 - **CSPRNG everywhere** — random coefficients are generated with `secrets.randbelow` (Python), `crypto.getRandomValues` (JS), `SecureRandom` (Java), and `RandomNumberGenerator.Fill` (C#).

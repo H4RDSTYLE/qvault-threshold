@@ -1,0 +1,20 @@
+services:
+  qvault-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qvault-gateway:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount your gateway.json into the container.
+      # Copy gateway.example.json to gateway.json and edit before starting.
+      - ./gateway.json:/config/gateway.json:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "from urllib.request import urlopen; urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
